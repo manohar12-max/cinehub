@@ -8,6 +8,7 @@ import {
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import toast from "react-hot-toast";
 
@@ -19,6 +20,7 @@ interface FormData {
 
 const AuthForm = ({ type }: { type: "register" | "login" }) => {
   const router = useRouter();
+  const [loading,setLoading] = useState<boolean>(false)
 
   const {
     register,
@@ -32,8 +34,9 @@ const AuthForm = ({ type }: { type: "register" | "login" }) => {
   });
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
+    setLoading(true)
     let res;
-
+   try{
     if (type === "register") {
       res = await fetch("/api/auth/register", {
         method: "POST",
@@ -62,6 +65,11 @@ const AuthForm = ({ type }: { type: "register" | "login" }) => {
         toast.error("Invalid credentials");
       }
     }
+  }catch (err) {
+    toast.error("Failed to handle authentication");
+  }finally{
+    setLoading(false)
+  }
   };
 
   return (
@@ -75,6 +83,7 @@ const AuthForm = ({ type }: { type: "register" | "login" }) => {
               <>
                 <div className="input">
                   <input
+                   disabled={loading}
                     {...register("username", {
                       required: "Username is required",
                       validate: (value: string | undefined) => {
@@ -98,6 +107,7 @@ const AuthForm = ({ type }: { type: "register" | "login" }) => {
 
             <div className="input">
               <input
+               disabled={loading}
                 {...register("email", {
                   required: "Email is required",
                 })}
@@ -111,6 +121,7 @@ const AuthForm = ({ type }: { type: "register" | "login" }) => {
 
             <div className="input">
               <input
+               disabled={loading}
                 {...register("password", {
                   required: "Password is required",
                   validate: (value: string | undefined) => {
@@ -133,7 +144,7 @@ const AuthForm = ({ type }: { type: "register" | "login" }) => {
               <p className="error">{errors.password.message}</p>
             )}
 
-            <button className="button" type="submit">
+            <button  disabled={loading} className="button" type="submit">
               {type === "register" ? "Join Free" : "Let's Watch"}
             </button>
           </form>
